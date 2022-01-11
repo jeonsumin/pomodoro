@@ -78,6 +78,7 @@ class ViewController: UIViewController {
     }
     
     //MARK: - Function
+    //애니메이션 추가전 사용 
     func setTimerInfoViewVisible(isHidden: Bool){
         timerLabel.isHidden = isHidden
         progressView.isHidden = isHidden
@@ -88,10 +89,14 @@ class ViewController: UIViewController {
         toggleButton.setTitle("일시정지", for: .selected)
     }
     
+    //타이머 시작 함수
     func startTimer(){
         if timer == nil {
+            //메인스레드에서 도는 TimerSource 초기화
             timer = DispatchSource.makeTimerSource(flags: [], queue: .main)
+            // deadline은 지금부터 1초 간격으로 스케줄링
             timer?.schedule(deadline: .now(),repeating: 1)
+            // timer 이벤트 핸들러 클로저 설정 
             timer?.setEventHandler(handler: { [weak self] in
                 guard let self = self else { return }
                 
@@ -102,13 +107,14 @@ class ViewController: UIViewController {
                 self.timerLabel.text = String(format: "%02d:%02d:%02d", hour,minutes,seconds)
                 self.progressView.progress = Float(self.currentSeconds) / Float(self.duration)
                 
+                // time가 돌때 imageView를 회전
                 UIView.animate(withDuration: 0.5,delay: 0, animations: {
                     self.imageView.transform = CGAffineTransform(rotationAngle: .pi)
                 })
-                
                 UIView.animate(withDuration: 0.5,delay: 0.5, animations: {
                     self.imageView.transform = CGAffineTransform(rotationAngle: .pi * 2)
                 })
+                
                 if self.currentSeconds <= 0 {
                     //타이머 종료
                     self.stopTimer()
@@ -118,6 +124,8 @@ class ViewController: UIViewController {
             self.timer?.resume()
         }
     }
+
+    //타이머 종료 함수
     func stopTimer(){
         if timerStatus == .pause {
             timer?.resume()
